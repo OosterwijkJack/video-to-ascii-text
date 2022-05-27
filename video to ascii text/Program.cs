@@ -11,7 +11,7 @@ namespace video_to_ascii_text
 {
     class Program
     {
-        static string CharacterList = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "characters.txt"));       
+        static string CharacterList = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "characters.txt"));
         static void Main(string[] args)
         {
             string OutputDir = Directory.GetCurrentDirectory() + @"\output";
@@ -20,7 +20,10 @@ namespace video_to_ascii_text
             double TimePerFrame = VideoToImages();
             Console.WriteLine(TimePerFrame);
 
-            DisplayText(OutputDir, TimePerFrame, AllImagesToAscii(OutputDir));
+            List<string> AsciiList = new List<string>();
+            AsciiList = AllImagesToAscii(OutputDir);
+
+            DisplayText(OutputDir, TimePerFrame, AsciiList);
 
             Console.ReadLine();
         }
@@ -37,7 +40,7 @@ namespace video_to_ascii_text
                 var i = 0;
                 while (i < mp4.Metadata.Duration.Seconds * mp4.Metadata.VideoData.Fps)
                 {
-                    var options = new ConversionOptions { Seek = TimeSpan.FromSeconds((mp4.Metadata.Duration.Seconds/(mp4.Metadata.VideoData.Fps*mp4.Metadata.Duration.Seconds))*i) };
+                    var options = new ConversionOptions { Seek = TimeSpan.FromSeconds((mp4.Metadata.Duration.Seconds / (mp4.Metadata.VideoData.Fps * mp4.Metadata.Duration.Seconds)) * i) };
                     var outputFile = new MediaFile { Filename = string.Format("{0}\\image-{1}.jpeg", "output", i) };
                     engine.GetThumbnail(mp4, outputFile, options);
                     i++;
@@ -48,13 +51,13 @@ namespace video_to_ascii_text
                 Thread.Sleep(300);
                 Console.Clear();
 
-                return (mp4.Metadata.Duration.Seconds) / (mp4.Metadata.VideoData.Fps);
+                return (mp4.Metadata.Duration.Seconds / (mp4.Metadata.VideoData.Fps * mp4.Metadata.Duration.Seconds));
             }
         }
 
         static void ClearDir(string dir)
         {
-            foreach(var i in Directory.GetFiles(dir))
+            foreach (var i in Directory.GetFiles(dir))
             {
                 File.Delete(i);
             }
@@ -77,16 +80,20 @@ namespace video_to_ascii_text
             Img = new Bitmap(Img, new Size(180, 60));
             Img.RotateFlip(RotateFlipType.Rotate270FlipY);
 
-            return Img; 
+            return Img;
         }
 
         static List<string> AllImagesToAscii(string OutputDir)
         {
             List<string> list = new List<string>();
-            foreach (var i in Directory.GetFiles(OutputDir)) //This Fucked Up!
+
+            int DirLength = Directory.GetFiles(Directory.GetCurrentDirectory() + @"\output").Length;
+
+            for (int i = 0; i < DirLength; i++) //This Fucked Up!
             {
-                Console.WriteLine(i);
-                Bitmap Img = GetImg(i);
+
+                string CurImgDir = string.Format("{0}\\image-{1}.jpeg", "output", i);
+                Bitmap Img = GetImg(CurImgDir);
 
                 List<float> PixelAvgs = GetPixelBrightness(Img);
                 List<char> AsciiConverted = AvgToAscii(PixelAvgs);
@@ -102,23 +109,29 @@ namespace video_to_ascii_text
                     }
                     Output += AsciiConverted[a].ToString();
                 }
+                Console.SetCursorPosition(0, 0);
+                Console.WriteLine($"Processing image {i + 1}/{DirLength}");
                 list.Add(Output);
             }
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write("Images Processed, press enter to display...");
+            Console.ReadLine();
+            Console.Clear();
             return list;
         }
 
         static void DisplayText(string dir, double TimePerFrame, List<string> text)
         {
-           
-            foreach(var i in text)
+            Console.ForegroundColor = ConsoleColor.White;
+            foreach (var i in text)
             {
                 Console.SetCursorPosition(0, 0);
                 Console.Write(i);
                 Thread.Sleep((int)(TimePerFrame * 1000));
             }
-            
+
         }
-        
+
 
         static List<float> GetPixelBrightness(Bitmap img)
         {
@@ -132,7 +145,7 @@ namespace video_to_ascii_text
                 }
             }
             return avg;
-            
+
         }
 
 
@@ -140,20 +153,20 @@ namespace video_to_ascii_text
         {
             List<char> list = new List<char>();
 
-            foreach(var i in avg)
+            foreach (var i in avg)
             {
                 for (int a = 0; a < CharacterList.Length; a++)
                 {
                     float amount = (255.0f / CharacterList.Length) * (a + 1.0f);
                     if (i <= amount)
-                    { 
+                    {
                         list.Add(CharacterList[a]);
                         break;
                     }
                 }
             }
             return list;
-        }      
+        }
 
     }
 }
