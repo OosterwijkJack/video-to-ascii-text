@@ -18,7 +18,6 @@ namespace video_to_ascii_text
 
             ClearDir(OutputDir);
             double TimePerFrame = VideoToImages();
-            Console.WriteLine(TimePerFrame);
 
             List<string> AsciiList = new List<string>();
             AsciiList = AllImagesToAscii(OutputDir);
@@ -44,11 +43,13 @@ namespace video_to_ascii_text
                     var outputFile = new MediaFile { Filename = string.Format("{0}\\image-{1}.jpeg", "output", i) };
                     engine.GetThumbnail(mp4, outputFile, options);
                     i++;
+                    Console.WriteLine($"{i}/{mp4.Metadata.Duration.Seconds * mp4.Metadata.VideoData.Fps}");
+                    Console.SetCursorPosition(0, 1);
                 }
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Complete!");
                 Console.ForegroundColor = ConsoleColor.White;
-                Thread.Sleep(300);
+                Thread.Sleep(1000);
                 Console.Clear();
 
                 return (mp4.Metadata.Duration.Seconds / (mp4.Metadata.VideoData.Fps * mp4.Metadata.Duration.Seconds));
@@ -77,7 +78,7 @@ namespace video_to_ascii_text
                 Thread.Sleep(3000);
                 Environment.Exit(0);
             }
-            Img = new Bitmap(Img, new Size(180, 60));
+            Img = new Bitmap(Img, new Size(184, 64));
             Img.RotateFlip(RotateFlipType.Rotate270FlipY);
 
             return Img;
@@ -110,7 +111,7 @@ namespace video_to_ascii_text
                     Output += AsciiConverted[a].ToString();
                 }
                 Console.SetCursorPosition(0, 0);
-                Console.WriteLine($"Processing image {i + 1}/{DirLength}");
+                Console.WriteLine($"Processing images {i + 1}/{DirLength}");
                 list.Add(Output);
             }
             Console.ForegroundColor = ConsoleColor.Green;
