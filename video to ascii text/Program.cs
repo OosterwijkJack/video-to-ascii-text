@@ -7,6 +7,7 @@ using System.Threading;
 using MediaToolkit.Model;
 using MediaToolkit.Options;
 
+
 namespace video_to_ascii_text
 {
     class Program
@@ -20,7 +21,8 @@ namespace video_to_ascii_text
             double TimePerFrame = VideoToImages();
 
             List<string> AsciiList = new List<string>();
-            AsciiList = AllImagesToAscii(OutputDir);
+            AsciiList = AllImagesToAscii();
+
 
             DisplayText(OutputDir, TimePerFrame, AsciiList);
 
@@ -36,6 +38,7 @@ namespace video_to_ascii_text
                 var mp4 = new MediaFile { Filename = "video.mp4" };
 
                 engine.GetMetadata(mp4);
+
                 var i = 0;
                 while (i < mp4.Metadata.Duration.Seconds * mp4.Metadata.VideoData.Fps)
                 {
@@ -43,7 +46,7 @@ namespace video_to_ascii_text
                     var outputFile = new MediaFile { Filename = string.Format("{0}\\image-{1}.jpeg", "output", i) };
                     engine.GetThumbnail(mp4, outputFile, options);
                     i++;
-                    Console.WriteLine($"{i}/{mp4.Metadata.Duration.Seconds * mp4.Metadata.VideoData.Fps}");
+                    Console.WriteLine($"{i}/{(int)(mp4.Metadata.Duration.Seconds * mp4.Metadata.VideoData.Fps)}");
                     Console.SetCursorPosition(0, 1);
                 }
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -65,7 +68,6 @@ namespace video_to_ascii_text
         }
         static Bitmap GetImg(string dir)
         {
-
             Bitmap Img = null;
             try
             {
@@ -78,19 +80,19 @@ namespace video_to_ascii_text
                 Thread.Sleep(3000);
                 Environment.Exit(0);
             }
-            Img = new Bitmap(Img, new Size(184, 64));
+            Img = new Bitmap(Img, new Size(180, 58));
             Img.RotateFlip(RotateFlipType.Rotate270FlipY);
 
             return Img;
         }
 
-        static List<string> AllImagesToAscii(string OutputDir)
+        static List<string> AllImagesToAscii()
         {
             List<string> list = new List<string>();
 
             int DirLength = Directory.GetFiles(Directory.GetCurrentDirectory() + @"\output").Length;
 
-            for (int i = 0; i < DirLength; i++) //This Fucked Up!
+            for (int i = 0; i < DirLength; i++)
             {
 
                 string CurImgDir = string.Format("{0}\\image-{1}.jpeg", "output", i);
@@ -120,6 +122,7 @@ namespace video_to_ascii_text
             Console.Clear();
             return list;
         }
+      
 
         static void DisplayText(string dir, double TimePerFrame, List<string> text)
         {
@@ -142,13 +145,13 @@ namespace video_to_ascii_text
                 for (int j = 0; j < img.Height; j++)
                 {
                     Color pixel = img.GetPixel(i, j);
-                    avg.Add((pixel.R + pixel.G + pixel.B) / 3.0f);
+                    avg.Add((pixel.R + pixel.G + pixel.B) / 3.0f);                   
                 }
             }
             return avg;
 
         }
-
+        
 
         static List<char> AvgToAscii(List<float> avg)
         {
